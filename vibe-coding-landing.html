@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding — 느끼며 코딩하라</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;700&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --accent: #7fffb2;
+    --accent2: #ff6ef7;
+    --accent3: #5ce1ff;
+    --text: #e8e8f0;
+    --muted: #6b6b88;
+    --border: rgba(255,255,255,0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, background 0.3s, width 0.3s, height 0.3s;
+    mix-blend-mode: screen;
+  }
+  .cursor-trail {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s ease, left 0.18s ease, top 0.18s ease, opacity 0.3s;
+    opacity: 0.4;
+  }
+  body:hover .cursor { opacity: 1; }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.5;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 500;
+    padding: 1.5rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(24px);
+    background: rgba(10,10,15,0.7);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.4rem;
+    border: none;
+    cursor: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { background: #5dffa3; transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 10rem 4rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  }
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+  }
+  .glow-1 { background: rgba(127,255,178,0.12); top: -100px; left: -100px; }
+  .glow-2 { background: rgba(255,110,247,0.1); bottom: -150px; right: -50px; }
+  .glow-3 { background: rgba(92,225,255,0.08); top: 40%; left: 40%; }
+
+  .hero-content { position: relative; text-align: center; max-width: 900px; }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 14vw, 13rem);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeUp 0.9s 0.4s forwards;
+  }
+  .hero-title .line-1 { display: block; color: var(--text); }
+  .hero-title .line-2 {
+    display: block;
+    -webkit-text-stroke: 1.5px var(--accent2);
+    color: transparent;
+  }
+  .hero-desc {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--muted);
+    line-height: 1.75;
+    max-width: 540px;
+    margin: 0 auto 3.5rem;
+    font-weight: 300;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.9s 0.6s forwards;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.9s 0.8s forwards;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 1rem 2.4rem;
+    border: none;
+    cursor: none;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+  .btn-primary:hover::after { transform: translateX(0); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(127,255,178,0.3); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 1rem 2.4rem;
+    border: 1px solid var(--border);
+    cursor: none;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--muted); transform: translateY(-2px); }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeIn 1s 1.4s forwards;
+  }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollPulse 2s infinite;
+  }
+  .scroll-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    writing-mode: horizontal-tb;
+  }
+
+  /* MARQUEE */
+  .marquee-section {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 0;
+    background: var(--surface);
+  }
+  .marquee-track {
+    display: flex;
+    gap: 3rem;
+    animation: marquee 20s linear infinite;
+    width: max-content;
+  }
+  .marquee-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+  }
+  .marquee-item span.dot { color: var(--accent); font-size: 0.5rem; }
+
+  /* SECTION COMMON */
+  section { padding: 8rem 4rem; }
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  /* WHAT IS */
+  .what-is { background: var(--bg); }
+  .what-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .what-text {}
+  .what-body {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 2.5rem;
+  }
+  .what-body strong { color: var(--text); font-weight: 700; }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .stat-label { font-size: 0.72rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-top: 0.3rem; }
+
+  .code-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .code-block::before {
+    content: '● ● ●';
+    display: block;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+  }
+  .code-block pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--text);
+    overflow-x: auto;
+  }
+  .code-block .c-comment { color: var(--muted); font-style: italic; }
+  .code-block .c-keyword { color: var(--accent2); }
+  .code-block .c-string { color: var(--accent); }
+  .code-block .c-fn { color: var(--accent3); }
+  .code-glow {
+    position: absolute;
+    bottom: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: rgba(127,255,178,0.06);
+    filter: blur(60px);
+    border-radius: 50%;
+  }
+
+  /* HOW IT WORKS */
+  .how { background: var(--surface); }
+  .how-inner { max-width: 1200px; margin: 0 auto; }
+  .how-header { text-align: center; margin-bottom: 5rem; }
+  .steps-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5px;
+    background: var(--border);
+  }
+  .step {
+    background: var(--card);
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .step:hover { background: #1e1e2a; }
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    line-height: 1;
+    color: var(--border);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+    transition: color 0.3s;
+  }
+  .step:hover .step-num { color: rgba(127,255,178,0.08); }
+  .step-icon {
+    width: 48px; height: 48px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.8rem;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .step:hover .step-icon {
+    border-color: var(--accent);
+    background: rgba(127,255,178,0.06);
+  }
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.8rem;
+  }
+  .step-body { font-size: 0.88rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  /* FEATURES */
+  .features { background: var(--bg); }
+  .features-inner { max-width: 1200px; margin: 0 auto; }
+  .features-header { margin-bottom: 4rem; }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+  .feature-card {
+    background: var(--card);
+    padding: 2.5rem;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.3s, background 0.3s, transform 0.2s;
+    position: relative;
+  }
+  .feature-card:hover {
+    background: #191926;
+    transform: translateY(-3px);
+  }
+  .feature-card.accent-1:hover { border-bottom-color: var(--accent); }
+  .feature-card.accent-2:hover { border-bottom-color: var(--accent2); }
+  .feature-card.accent-3:hover { border-bottom-color: var(--accent3); }
+  .feature-icon { font-size: 1.8rem; margin-bottom: 1.5rem; }
+  .feature-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.04em; margin-bottom: 0.8rem; }
+  .feature-body { font-size: 0.85rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  /* TOOLS */
+  .tools { background: var(--surface); }
+  .tools-inner { max-width: 1200px; margin: 0 auto; text-align: center; }
+  .tools-header { margin-bottom: 4rem; }
+  .tools-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .tool-badge {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 0.8rem 1.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    transition: all 0.2s;
+    cursor: none;
+  }
+  .tool-badge:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    background: rgba(127,255,178,0.04);
+  }
+  .tool-badge .badge-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* TESTIMONIALS */
+  .testimonials { background: var(--bg); }
+  .testimonials-inner { max-width: 1200px; margin: 0 auto; }
+  .testimonials-header { text-align: center; margin-bottom: 4rem; }
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .testi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+  .testi-card:hover { border-color: rgba(255,255,255,0.12); }
+  .testi-quote {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: var(--accent);
+    line-height: 0.7;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+  }
+  .testi-body {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 2rem;
+    font-style: italic;
+  }
+  .testi-author { display: flex; align-items: center; gap: 1rem; }
+  .testi-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #000;
+  }
+  .testi-name { font-size: 0.8rem; font-weight: 700; }
+  .testi-role { font-size: 0.72rem; color: var(--muted); }
+
+  /* CTA */
+  .cta-section {
+    padding: 10rem 4rem;
+    background: var(--surface);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(127,255,178,0.04) 0%, transparent 70%);
+  }
+  .cta-inner { position: relative; max-width: 700px; margin: 0 auto; }
+  .cta-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    line-height: 0.95;
+    margin-bottom: 2rem;
+  }
+  .cta-title em { font-style: normal; color: var(--accent); }
+  .cta-desc { font-size: 1rem; color: var(--muted); margin-bottom: 3rem; font-weight: 300; line-height: 1.7; }
+  .cta-email {
+    display: flex;
+    gap: 0;
+    max-width: 460px;
+    margin: 0 auto;
+    border: 1px solid var(--border);
+  }
+  .cta-email input {
+    flex: 1;
+    background: var(--card);
+    border: none;
+    padding: 1rem 1.4rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    outline: none;
+  }
+  .cta-email input::placeholder { color: var(--muted); }
+  .cta-email button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 1rem 1.8rem;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.2s;
+  }
+  .cta-email button:hover { background: #5dffa3; }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.08em; }
+  .footer-copy { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a { font-size: 0.72rem; color: var(--muted); text-decoration: none; letter-spacing: 0.08em; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 1.2rem 2rem; }
+    .nav-links { display: none; }
+    section { padding: 5rem 2rem; }
+    .what-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .hero { padding: 8rem 2rem 5rem; }
+    .stat-row { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    footer { padding: 2rem; flex-direction: column; text-align: center; }
+    .cta-section { padding: 7rem 2rem; }
+  }
+  @media (max-width: 560px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .steps-list { grid-template-columns: 1fr; }
+    .cta-email { flex-direction: column; }
+    .cta-email button { padding: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">VIBE.CODE</div>
+  <ul class="nav-links">
+    <li><a href="#what">바이브란?</a></li>
+    <li><a href="#how">작동 방식</a></li>
+    <li><a href="#features">기능</a></li>
+    <li><a href="#tools">도구</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">무료 시작 →</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow glow-1"></div>
+  <div class="hero-glow glow-2"></div>
+  <div class="hero-glow glow-3"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">✦ AI-Powered Development · 2025 ✦</p>
+    <h1 class="hero-title">
+      <span class="line-1">VIBE</span>
+      <span class="line-2">CODING</span>
+    </h1>
+    <p class="hero-desc">
+      코드를 <strong>설계</strong>하는 시대는 끝났다.<br>
+      이제는 <strong>느끼며</strong> 만든다. AI와 함께,<br>
+      당신의 생각이 곧 소프트웨어가 된다.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">지금 시작하기</button>
+      <button class="btn-secondary" onclick="document.getElementById('what').scrollIntoView({behavior:'smooth'})">더 알아보기</button>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <span class="scroll-text">scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track" id="marqueeTrack">
+    <span class="marquee-item">AI-First Development <span class="dot">◆</span></span>
+    <span class="marquee-item">자연어로 코딩 <span class="dot">◆</span></span>
+    <span class="marquee-item">10배 빠른 개발 <span class="dot">◆</span></span>
+    <span class="marquee-item">Vibe Coding <span class="dot">◆</span></span>
+    <span class="marquee-item">생각을 코드로 <span class="dot">◆</span></span>
+    <span class="marquee-item">No More Boilerplate <span class="dot">◆</span></span>
+    <span class="marquee-item">Build Without Barriers <span class="dot">◆</span></span>
+    <span class="marquee-item">AI-First Development <span class="dot">◆</span></span>
+    <span class="marquee-item">자연어로 코딩 <span class="dot">◆</span></span>
+    <span class="marquee-item">10배 빠른 개발 <span class="dot">◆</span></span>
+    <span class="marquee-item">Vibe Coding <span class="dot">◆</span></span>
+    <span class="marquee-item">생각을 코드로 <span class="dot">◆</span></span>
+    <span class="marquee-item">No More Boilerplate <span class="dot">◆</span></span>
+    <span class="marquee-item">Build Without Barriers <span class="dot">◆</span></span>
+  </div>
+</div>
+
+<!-- WHAT IS -->
+<section class="what-is" id="what">
+  <div class="what-grid">
+    <div class="what-text">
+      <p class="section-label reveal">// 01 — 바이브 코딩이란</p>
+      <h2 class="section-title reveal reveal-delay-1">코드보다<br>아이디어가<br>먼저다</h2>
+      <p class="what-body reveal reveal-delay-2">
+        <strong>바이브 코딩(Vibe Coding)</strong>은 개발자가 세부 구현을 일일이 작성하지 않고,
+        <strong>자연어 의도</strong>와 <strong>직관</strong>을 AI에게 전달하여
+        소프트웨어를 만드는 새로운 개발 패러다임입니다.
+        <br><br>
+        Andrej Karpathy가 제안한 이 개념은 AI를 단순 도구가 아닌
+        <strong>공동 창작자</strong>로 보는 관점에서 출발합니다.
+        당신은 방향을 잡고, AI는 실행합니다.
+      </p>
+      <div class="stat-row reveal reveal-delay-3">
+        <div class="stat-item">
+          <div class="stat-num">10×</div>
+          <div class="stat-label">개발 속도</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">73%</div>
+          <div class="stat-label">보일러플레이트 감소</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">가능성</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block reveal reveal-delay-2">
+      <pre><code><span class="c-comment">// 기존 방식: 직접 구현</span>
+<span class="c-keyword">const</span> <span class="c-fn">fetchUsers</span> = <span class="c-keyword">async</span> () => {
+  <span class="c-keyword">const</span> res = <span class="c-keyword">await</span> fetch(<span class="c-string">'/api/users'</span>)
+  <span class="c-keyword">if</span> (!res.ok) <span class="c-keyword">throw</span> <span class="c-keyword">new</span> Error(...)
+  <span class="c-keyword">return</span> res.json()
+}
+
+<span class="c-comment">// ✦ 바이브 코딩 방식</span>
+<span class="c-string">"사용자 목록을 가져오고,</span>
+<span class="c-string"> 로딩 상태와 에러 처리를</span>
+<span class="c-string"> 포함한 훅을 만들어줘"</span>
+
+<span class="c-comment">// → AI가 완전한 코드 생성</span>
+<span class="c-keyword">export const</span> <span class="c-fn">useUsers</span> = () => {
+  <span class="c-comment">// loading, error, data...</span>
+}</code></pre>
+      <div class="code-glow"></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header">
+      <p class="section-label reveal">// 02 — 작동 방식</p>
+      <h2 class="section-title reveal reveal-delay-1">3단계로<br>완성되는 흐름</h2>
+    </div>
+
+    <div class="steps-list">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-icon">💬</div>
+        <h3 class="step-title">의도 전달</h3>
+        <p class="step-body">코드가 아닌 언어로 말하세요. "사용자가 로그인하면 대시보드로 이동하고, 토큰을 로컬에 저장해줘" — 그것으로 충분합니다.</p>
+      </div>
+      <div class="step reveal reveal-delay-1">
+        <div class="step-num">02</div>
+        <div class="step-icon">🤖</div>
+        <h3 class="step-title">AI 생성</h3>
+        <p class="step-body">AI가 문맥을 파악하고 최적의 코드를 생성합니다. 타입 정의, 에러 처리, 엣지 케이스까지 알아서 처리됩니다.</p>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num">03</div>
+        <div class="step-icon">✨</div>
+        <h3 class="step-title">반복 & 진화</h3>
+        <p class="step-body">결과물을 보고 피드백하세요. "색상을 브랜드에 맞게", "성능을 개선해줘" — 바이브로 계속 발전시킵니다.</p>
+      </div>
+      <div class="step reveal reveal-delay-3">
+        <div class="step-num">04</div>
+        <div class="step-icon">🚀</div>
+        <h3 class="step-title">배포 & 반영</h3>
+        <p class="step-body">완성된 코드를 바로 프로덕션에 적용하세요. 개발-배포 사이클이 획기적으로 단축됩니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="features-inner">
+    <div class="features-header">
+      <p class="section-label reveal">// 03 — 핵심 기능</p>
+      <h2 class="section-title reveal reveal-delay-1">당신이 얻게 되는<br>초능력들</h2>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card accent-1 reveal">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title">즉각적인 프로토타이핑</h3>
+        <p class="feature-body">아이디어를 떠올린 순간, 작동하는 프로토타입을 손에 쥐세요. 몇 시간이 아닌 몇 분 안에.</p>
+      </div>
+      <div class="feature-card accent-2 reveal reveal-delay-1">
+        <div class="feature-icon">🧠</div>
+        <h3 class="feature-title">컨텍스트 인식</h3>
+        <p class="feature-body">AI가 당신의 코드베이스, 스타일, 아키텍처 결정을 기억하고 일관된 방식으로 확장합니다.</p>
+      </div>
+      <div class="feature-card accent-3 reveal reveal-delay-2">
+        <div class="feature-icon">🔄</div>
+        <h3 class="feature-title">실시간 리팩토링</h3>
+        <p class="feature-body">레거시 코드를 현대적으로. 성능 병목을 최적화. 단 하나의 프롬프트로 전체 모듈을 개선합니다.</p>
+      </div>
+      <div class="feature-card accent-1 reveal reveal-delay-1">
+        <div class="feature-icon">🌐</div>
+        <h3 class="feature-title">멀티 언어 지원</h3>
+        <p class="feature-body">Python, TypeScript, Rust, Go — 언어에 구애받지 마세요. 바이브는 모든 언어로 통합니다.</p>
+      </div>
+      <div class="feature-card accent-2 reveal reveal-delay-2">
+        <div class="feature-icon">🛡️</div>
+        <h3 class="feature-title">보안 코드 생성</h3>
+        <p class="feature-body">OWASP 가이드라인을 자동 적용. SQL 인젝션, XSS, CSRF 방어 패턴을 기본으로 포함합니다.</p>
+      </div>
+      <div class="feature-card accent-3 reveal reveal-delay-3">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">테스트 자동화</h3>
+        <p class="feature-body">코드를 작성하면 테스트가 따라옵니다. 유닛, 통합, E2E 테스트를 자동으로 생성하고 유지합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="tools" id="tools">
+  <div class="tools-inner">
+    <p class="section-label reveal">// 04 — 도구 생태계</p>
+    <h2 class="section-title reveal reveal-delay-1">바이브 코딩을<br>실현하는 도구들</h2>
+    <p class="what-body reveal reveal-delay-2" style="max-width:520px;margin:0 auto 3.5rem;">지금 바로 사용할 수 있는 AI 개발 도구들을 만나보세요. 당신의 워크플로우에 맞게 조합하세요.</p>
+
+    <div class="tools-grid reveal reveal-delay-2">
+      <div class="tool-badge"><span class="badge-dot" style="background:var(--accent)"></span>Claude Code</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#74aa9c"></span>GitHub Copilot</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#ff6b6b"></span>Cursor IDE</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#ffd93d"></span>Windsurf</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:var(--accent3)"></span>Bolt.new</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#a78bfa"></span>v0 by Vercel</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#fb923c"></span>Lovable</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:var(--accent2)"></span>Replit AI</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#34d399"></span>Cline</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#60a5fa"></span>Aider</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#f472b6"></span>Continue.dev</div>
+      <div class="tool-badge"><span class="badge-dot" style="background:#a3e635"></span>Tabnine</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials-inner">
+    <div class="testimonials-header">
+      <p class="section-label reveal">// 05 — 개발자들의 이야기</p>
+      <h2 class="section-title reveal reveal-delay-1">이미 경험한<br>사람들의 말</h2>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testi-card reveal">
+        <div class="testi-quote">"</div>
+        <p class="testi-body">기획부터 MVP까지 혼자서 3일 만에 완성했어요. 바이브 코딩 전에는 팀이 필요한 일이었는데, 이제는 혼자서도 충분합니다.</p>
+        <div class="testi-author">
+          <div class="testi-avatar">김J</div>
+          <div>
+            <div class="testi-name">김지민</div>
+            <div class="testi-role">1인 스타트업 창업자</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-quote">"</div>
+        <p class="testi-body">코드 한 줄 몰랐는데, 바이브 코딩으로 SaaS 제품을 만들고 첫 달에 유료 고객을 확보했습니다. 진짜 마법 같은 경험이에요.</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,var(--accent2),#ff9a56)">박S</div>
+          <div>
+            <div class="testi-name">박서연</div>
+            <div class="testi-role">기획자 출신 창업가</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-quote">"</div>
+        <p class="testi-body">10년 차 개발자인데, 바이브 코딩 도입 후 개발 속도가 4배 빨라졌어요. 이제 진짜 중요한 문제에만 집중할 수 있게 됐습니다.</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:linear-gradient(135deg,var(--accent3),#818cf8)">이H</div>
+          <div>
+            <div class="testi-name">이현우</div>
+            <div class="testi-role">시니어 풀스택 개발자</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="cta-bg"></div>
+  <div class="cta-inner">
+    <p class="section-label reveal" style="text-align:center">// 지금 시작하세요</p>
+    <h2 class="cta-title reveal reveal-delay-1">
+      <em>FEEL</em><br>
+      THE CODE
+    </h2>
+    <p class="cta-desc reveal reveal-delay-2">
+      바이브 코딩 뉴스레터를 구독하고, 최신 AI 개발 트렌드와<br>
+      실전 프롬프트 템플릿을 무료로 받아보세요.
+    </p>
+    <div class="cta-email reveal reveal-delay-3">
+      <input type="email" placeholder="이메일을 입력하세요" id="emailInput">
+      <button onclick="handleSubscribe()">구독하기</button>
+    </div>
+    <p id="subscribeMsg" style="font-size:0.78rem;color:var(--accent);margin-top:1rem;opacity:0;transition:opacity 0.4s;font-family:'Space Mono',monospace">✓ 등록되었습니다. 곧 연락드릴게요!</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">VIBE.CODE</div>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="#">Twitter</a>
+    <a href="#">Discord</a>
+    <a href="#">블로그</a>
+  </div>
+  <p class="footer-copy">© 2025 Vibe Coding. 느끼며, 만들며.</p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const trail = document.getElementById('cursorTrail');
+  let mx = 0, my = 0, tx = 0, ty = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateTrail() {
+    tx += (mx - tx) * 0.15;
+    ty += (my - ty) * 0.15;
+    trail.style.left = tx + 'px';
+    trail.style.top = ty + 'px';
+    requestAnimationFrame(animateTrail);
+  }
+  animateTrail();
+
+  document.querySelectorAll('button, a, .tool-badge, .step, .feature-card, .testi-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '20px';
+      cursor.style.height = '20px';
+      cursor.style.background = 'var(--accent2)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '12px';
+      cursor.style.height = '12px';
+      cursor.style.background = 'var(--accent)';
+    });
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Subscribe
+  function handleSubscribe() {
+    const input = document.getElementById('emailInput');
+    const msg = document.getElementById('subscribeMsg');
+    if (input.value.includes('@')) {
+      msg.style.opacity = '1';
+      input.value = '';
+      setTimeout(() => msg.style.opacity = '0', 4000);
+    } else {
+      input.style.borderColor = 'var(--accent2)';
+      setTimeout(() => input.style.borderColor = '', 1500);
+    }
+  }
+
+  document.getElementById('emailInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleSubscribe();
+  });
+
+  // Nav active on scroll
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    nav.style.background = window.scrollY > 60
+      ? 'rgba(10,10,15,0.95)'
+      : 'rgba(10,10,15,0.7)';
+  });
+
+  // Parallax glow
+  document.addEventListener('mousemove', e => {
+    const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+    const ny = (e.clientY / window.innerHeight - 0.5) * 2;
+    document.querySelectorAll('.hero-glow').forEach((g, i) => {
+      const depth = (i + 1) * 12;
+      g.style.transform = `translate(${nx * depth}px, ${ny * depth}px)`;
+    });
+  });
+</script>
+</body>
+</html>
